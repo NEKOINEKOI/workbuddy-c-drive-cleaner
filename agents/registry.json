@@ -1,0 +1,96 @@
+{
+  "_readme": "Agent registry for the clean/migrate skill. ONE agent is processed at a time. The active agent is chosen by the user; default is workbuddy. Paths use $USERPROFILE$, $LOCALAPPDATA$, $APPDATA$ tokens resolved at runtime. Adding a new agent = adding one entry here, no script rewrite needed for scanning.",
+  "_rules": [
+    "Only one agent per run. Never scan or stage several agents at once - it confuses both the agent and the user.",
+    "Default agent is workbuddy. Switch to another only when the user explicitly names it.",
+    "Stage/Migrate scripts only implement the delete/move allowlist for 'workbuddy' today. For other agents, use Scan-Agent.ps1 to produce the report and follow that agent's manual_* notes; do not blindly reuse the workbuddy allowlist.",
+    "Each agent has a different layout. deletable = safe auto-rebuild caches. migratable = idle data dirs. protected = must never touch. Verify against the real machine before acting."
+  ],
+  "agents": {
+    "workbuddy": {
+      "label": "腾讯 WorkBuddy",
+      "home": ["$USERPROFILE$\\.workbuddy"],
+      "appdata": ["$APPDATA$\\WorkBuddy", "$LOCALAPPDATA$\\WorkBuddy"],
+      "install": "$LOCALAPPDATA$\\Programs\\WorkBuddy",
+      "deletable": [
+        { "path": "$USERPROFILE$\\.workbuddy\\logs", "kind": "old-logs", "tier": "Standard" },
+        { "path": "$LOCALAPPDATA$\\WorkBuddy\\logs", "kind": "old-logs", "tier": "Standard" },
+        { "path": "$USERPROFILE$\\.workbuddy\\clipboard-images", "kind": "cache", "tier": "Standard" },
+        { "path": "$USERPROFILE$\\.workbuddy\\cache\\conversation-product-spill", "kind": "cache", "tier": "Standard" },
+        { "path": "$USERPROFILE$\\.workbuddy\\traces", "kind": "cache", "tier": "Standard" },
+        { "path": "$USERPROFILE$\\.workbuddy\\shell-snapshots", "kind": "cache", "tier": "Standard" }
+      ],
+      "migratable": [
+        { "path": "$USERPROFILE$\\.workbuddy\\projects", "kind": "idle-project-dirs", "exclude": ["d-WorkBuddy 工作区", "workbuddy"] }
+      ],
+      "protected": ["binaries", "workspace\\sessions", "blobs", "skills", "plugins", "*.db*", "settings.json", "mcp.json", "keyblob", "device-id", "SOUL.md", "IDENTITY.md", "USER.md", "MEMORY.md", "install dir"],
+      "default_storage_note": "WorkBuddy data root is fixed at ~/.workbuddy. It cannot be relocated by config; a directory junction is the only workaround. Remind the user: after migrating, reset each app's own download/output/cache folder (if configurable) to another drive so C: does not grow again.",
+      "manual_delete_note": "Stage-LowRisk.ps1 and Migrate-Projects.ps1 implement the full delete/migrate allowlist for this agent."
+    },
+    "codex": {
+      "label": "OpenAI Codex",
+      "home": ["$USERPROFILE$\\.codex"],
+      "appdata": [],
+      "install": "",
+      "deletable": [
+        { "path": "$USERPROFILE$\\.codex\\.tmp", "kind": "temp", "tier": "Standard" },
+        { "path": "$USERPROFILE$\\.codex\\tmp", "kind": "temp", "tier": "Standard" },
+        { "path": "$USERPROFILE$\\.codex\\cache", "kind": "cache", "tier": "Standard" },
+        { "path": "$USERPROFILE$\\.codex\\log", "kind": "old-logs", "tier": "Standard" },
+        { "path": "$USERPROFILE$\\.codex\\ambient-suggestions", "kind": "cache", "tier": "Standard" },
+        { "path": "$USERPROFILE$\\.codex\\dictation-history", "kind": "cache", "tier": "Standard" },
+        { "path": "$USERPROFILE$\\.codex\\.sandbox", "kind": "sandbox-scratch", "tier": "Standard" },
+        { "path": "$USERPROFILE$\\.codex\\.sandbox-bin", "kind": "runtime-bin", "tier": "Maximum" },
+        { "path": "$USERPROFILE$\\.codex\\generated_images", "kind": "generated-output", "tier": "Maximum" },
+        { "path": "$USERPROFILE$\\.codex\\chrome-chatgpt-profile", "kind": "browser-login-profile", "tier": "Maximum" }
+      ],
+      "migratable": [],
+      "protected": ["sessions", "skills", "plugins", "*.sqlite*", "auth.json", "config.toml", ".codex-global-state.json", "memories*", "state", "secrets", "installation_id"],
+      "default_storage_note": "After cleaning, remind the user to set CODEX_HOME / session and cache output paths to another drive if their Codex build supports it. Do not assume; ask the user to confirm where Codex stores new data.",
+      "manual_delete_note": "No dedicated allowlist script yet. Use Scan-Agent.ps1 report; stage only user-confirmed deletable paths via copy-then-manual-delete, never touch sessions/skills/plugins/sqlite/auth."
+    },
+    "box-agent": {
+      "label": "Box Agent",
+      "home": ["$USERPROFILE$\\.box-agent"],
+      "appdata": [],
+      "install": "",
+      "deletable": [
+        { "path": "$USERPROFILE$\\.box-agent\\browsers", "kind": "browser-profile", "tier": "Maximum" },
+        { "path": "$USERPROFILE$\\.box-agent\\log", "kind": "old-logs", "tier": "Standard" }
+      ],
+      "migratable": [],
+      "protected": ["box-agent-runtime", "config", "connectors", "memory", "skills", "runtime-packages", "sandbox"],
+      "default_storage_note": "Remind the user to point Box Agent's runtime/cache and browser download folders to another drive if configurable.",
+      "manual_delete_note": "Runtime is 1+ GB and protected. Only log dir is Standard; browsers is Maximum (login state)."
+    },
+    "claude": {
+      "label": "Claude Code",
+      "home": ["$USERPROFILE$\\.claude"],
+      "appdata": [],
+      "install": "",
+      "deletable": [
+        { "path": "$USERPROFILE$\\.claude\\logs", "kind": "old-logs", "tier": "Standard" },
+        { "path": "$USERPROFILE$\\.claude\\cache", "kind": "cache", "tier": "Standard" },
+        { "path": "$USERPROFILE$\\.claude\\todos", "kind": "cache", "tier": "Standard" }
+      ],
+      "migratable": [],
+      "protected": ["skills", "plugins", "projects", "settings.json", "*.json", "memory", "SESSION MEMORY.md", "CLAUDE.md"],
+      "default_storage_note": "Remind the user to set any Claude config path / cache location to another drive if configurable.",
+      "manual_delete_note": "Small footprint; verify actual layout before acting - this entry is a template, not measured."
+    },
+    "gemini": {
+      "label": "Gemini CLI",
+      "home": ["$USERPROFILE$\\.gemini"],
+      "appdata": [],
+      "install": "",
+      "deletable": [
+        { "path": "$USERPROFILE$\\.gemini\\tmp", "kind": "temp", "tier": "Standard" },
+        { "path": "$USERPROFILE$\\.gemini\\logs", "kind": "old-logs", "tier": "Standard" }
+      ],
+      "migratable": [],
+      "protected": ["settings.json", "credentials", "history", "skills"],
+      "default_storage_note": "Remind the user to set GEMINI_CLI_HOME / cache dir to another drive if configurable.",
+      "manual_delete_note": "Small footprint; verify actual layout before acting - this entry is a template, not measured."
+    }
+  }
+}
