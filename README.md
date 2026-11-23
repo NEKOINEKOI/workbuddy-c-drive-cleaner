@@ -23,7 +23,8 @@ Windows 上整理 AI agent 在 C 盘占用的 skill。默认处理腾讯 WorkBud
 | 详细扫描 | `Scan-WorkBuddy.ps1` | 只读。逐目录深挖，可留档 |
 | 清理暂存 | `Stage-LowRisk.ps1` | Plan 只读预览 / Stage 把确认过的可删文件移进待删文件夹，生成原路径对照表。三档强度，默认 Standard |
 | 项目迁移 | `Migrate-Projects.ps1` | Plan 只读预览 / Migrate 先把闲置项目复制到目标盘、校验一致，再把 C 盘源打包 |
-| 通用提示词 | `prompts/通用清理提示词.md` | 给非 WorkBuddy agent 用，复制正文给对方即可 |
+| 通用自扫提示词 | `prompts/非WorkBuddy-Agent自扫提示词.md` | 给 Codex / Claude Code 等非 WorkBuddy agent 用：开头点名各 agent 对应的数据目录，对方扫自己那份，不扫整块 C 盘 |
+| 通用提示词（简版） | `prompts/通用清理提示词.md` | 同上，不点名具体 agent，让对方自己认数据位置 |
 | agent 注册表 | `agents/registry.json` | 可选只读参考，记录常见 agent 的目录和存储位置说明 |
 
 ### 三档清理强度
@@ -57,7 +58,7 @@ Maximum 必须带 `-AcknowledgeLossOfFeatures`，且只在用户明确说不要�
 把下面这段整段复制给你自己的 agent，它会按本 skill 的流程整理 C 盘占用：
 
 ```text
-用 workbuddy-c-drive-cleaner 整理我 Windows C 盘的占用。先只读扫描，列一张表告诉我 WorkBuddy 有哪些内容、能删多少、能迁多少、必须留什么，我确认后再动手。默认只处理 WorkBuddy，别扫别的 agent；我要清别的你再把通用提示词给我。待删包和迁移位置我会给你路径，没给就用默认。删除由我自己来做，你只把文件夹整理好、把地址给我。清完提醒我把默认存储位置改到别的盘。
+用 workbuddy-c-drive-cleaner 整理 WorkBuddy 自己这份数据在 C 盘的占用——只扫 WorkBuddy 的数据目录，不要扫整块 C 盘，也不要扫别的 agent 或别的软件。先只读扫描，列一张表告诉我有哪些内容、能删多少、能迁多少、必须留什么，我确认后再动手。我要清别的 agent 你再把对应的提示词给我。待删包和迁移位置我会给你路径，没给就用默认。删除由我自己来做，你只把文件夹整理好、把地址给我。清完提醒我把默认存储位置改到别的盘。
 ```
 
 ## 安装
@@ -77,7 +78,9 @@ workbuddy-c-drive-cleaner/
 ├── SKILL.md                        主规则（agent 执行依据）
 ├── README.md                       本文件
 ├── agents/registry.json            可选：常见 agent 目录参考
-├── prompts/通用清理提示词.md        非 WorkBuddy agent 用
+├── prompts/
+│   ├── 非WorkBuddy-Agent自扫提示词.md   非 WorkBuddy agent 用（点名各 agent 数据目录）
+│   └── 通用清理提示词.md                简版，让对方自己认数据位置
 ├── docs/zhijing-ai-qrcode.png      公众号二维码
 └── scripts/
     ├── Report-Overview.ps1         只读汇总
